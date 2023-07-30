@@ -12,12 +12,30 @@ export async function getCustomers(req, res) {
     }
 }
 
+export async function getCustomer(req, res) {
+    try {
+        const {id} = req.params;
+        console.log(id);
+        const customer = await db.query(`SELECT 
+        id, name, phone, cpf, to_char(birthday, 'YYYY-MM-DD') AS birthday 
+        FROM customers
+        WHERE 
+        id = $1;`, [id])
+
+        if(!customer.rows[0])
+            return res.sendStatus(404)
+
+        res.send(customer.rows[0])
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
 export async function postCustomers(req, res) {
     try {
         const { name, phone, cpf, birthday } = req.body;
 
         const existing = await db.query(`SELECT cpf FROM customers WHERE cpf = $1;`, [cpf])
-        console.log(existing.rows[0]);
 
         if(existing.rows[0])
             return res.status(409).send("CPF já cadastrado!");
