@@ -50,3 +50,24 @@ export async function postCustomers(req, res) {
         res.status(500).send(err.message)
     }
 }
+
+export async function putCustomer(req, res) {
+    try {
+        const { name, phone, cpf, birthday } = req.body;
+        const { id } = req.params;
+
+        const existing = await db.query(`SELECT cpf FROM customers WHERE cpf = $1;`, [cpf])
+        const userCPF = await db.query(`SELECT cpf FROM customers WHERE id = $1;`, [id])
+
+        if(existing.rows[0] && userCPF.rows[0].cpf !== cpf)
+            return res.status(409).send("CPF já cadastrado!");
+
+        await db.query(`
+        UPDATE customers 
+        SET 
+        name = $1, phone = $2, cpf = $3, birthday= $4 WHERE id = $5;`, [name, phone, cpf, birthday, id])
+        res.sendStatus(200)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
