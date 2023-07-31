@@ -18,28 +18,23 @@ export async function postRentals(req, res) {
         const { customerId, gameId, daysRented } = req.body
         const rentDate = dayjs().format("YYYY-MM-DD")
     try {
-        // verifica se os dias alugados são > 0
         if (daysRented <= 0) return res.sendStatus(400)
         
-        // verifica se o cliente existe
         const existingCostumer = await db.query(
             `SELECT id FROM customers WHERE id = $1;`, [customerId]
         );
         if (!existingCostumer.rows[0])
         return res.status(400).send("Cliente não existe");
 
-        //verifica se o jogo existe
         const exisitingGame = await db.query(
             `SELECT id, "stockTotal" FROM games WHERE id = $1;`,
             [gameId]
         );
         if (!exisitingGame.rows[0]) return res.status(400).send("Jogo não existe")
         
-        //verifica se o jogo selecionado tem estoque
         if (exisitingGame.rows[0].stockTotal === 0)
         return res.status(400).send("Jogo sem estoque")
         
-        // calcula o valor do aluguel
         const gamePrice = await db.query(
             `SELECT "pricePerDay" FROM games WHERE id=$1`,
             [gameId]
